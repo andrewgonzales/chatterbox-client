@@ -116,10 +116,11 @@ describe('chatterbox', function() {
         sinon.spy(app, 'handleSubmit');
 
         $('#message').val('Why so many Mel Brooks quotes?');
-
-        app.init();
-
-        $('#send .submit').trigger('submit');
+        // app.init();
+        app.currRoom = "lobby";
+        app.username = "Bobby Smith";
+        app.handleSubmit();
+        // $('#send .submit').trigger('submit');
         expect(app.handleSubmit.calledOnce).to.be.true;
 
         app.handleSubmit.restore();

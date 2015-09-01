@@ -24,6 +24,9 @@ var app = {};
 app.server = 'https://api.parse.com/1/classes/chatterbox';//App url
 app.messageStorage = {};//Stores keys of all visible messages
 app.currRoom = "lobby";
+app.username = "anonymous";
+app.canFetch = true;
+app.friends = {};
 
 var displayMessages = function(messageArray){
   // console.log("trying to display messages");
@@ -40,69 +43,83 @@ var displayMessages = function(messageArray){
 };
 
 var messageMaker = function(message){
+  //Get attributes
   var user = message['username'];
   var text = message['text'];
-  // var timeStamp = message['createdAt'];
+  //Create container divs
   var containerDiv = $('<div class="chat"></div>');
   var userDiv = $('<div class="username"></div>');
   var textDiv = $('<div class="text"></div>');
-  // var timeStampDiv = $('<div class="timeStamp"></div>');
-
+  //Set text
   userDiv.text(user);
   textDiv.text(text);
-  // timeStampDiv.text(timeStamp);
-  containerDiv.append([userDiv, /*timeStampDiv, */textDiv]);
-
+  //Append children to container
+  containerDiv.append([userDiv, textDiv]);
+  //Set click function
+  userDiv.click(function(){
+    app.addFriend(userDiv);
+  });
+  //Return container
   return containerDiv;
 }; 
 
+app.addFriend = function(DOMElement){
+  this.friends[$(DOMElement).text()] = $(DOMElement).text();
+};
+
+app.handleSubmit = function(){
+  console.log("handling submit");
+  app.send({
+    username: app.username, 
+    text: $("#message").val(),
+    roomname: app.currRoom
+  });
+};
+
+$('#send .submit').click(function(event){
+  console.log("clicked submit");
+  app.handleSubmit();
+  return false;
+});
+
 //Fetch messages from the server
 app.fetch = function(){
-  // $.ajax({
-  //   url: app.server,
-  //   type: 'GET', 
-  //   // data: JSON.stringify({}),
-  //   // contentType: 'application/json',
-  //   success: function(data){
-  //     // console.log('chatterbox: Message received');
-  //     // console.log(data);
-  //     displayMessages(data.results);
-  //   },
-  //   error: function(data) {
-  //     console.error('chatterbox: Failed to send message');
-  //   }
-  // });
-  var latestRoomMessages = [];
-  //Use ajax to send message to server
-  $.ajax({
-    url: app.server,
-    type: 'GET', 
-    data: 'where={"roomname": "' + app.currRoom + '"}',
-    contentType: 'application/json',
-    success: function(data){
-      // console.log('chatterbox: Message sent');
-      // var count = 0;
-      // for(var i = 0; i < data.results.length; ++i){
-      //   if(data.results[i]["roomname"] === app.currRoom){
-      //     count++;
-      //     break;
-      //   }
-      // }
-      // if(count > 0){
-      //   latestRoomMessages = data.results;
-      // }
-      displayMessages(data.results);
-    },
-    error: function(data) {
-      console.error('chatterbox: Failed to send message');
-    }
-  });
-  return latestRoomMessages;
+  if(app.canFetch){
+    var latestRoomMessages = [];
+    //Use ajax to send message to server
+    $.ajax({
+      url: app.server,
+      type: 'GET', 
+      data: 'where={"roomname": "' + app.currRoom + '"}',
+      contentType: 'application/json',
+      success: function(data){
+        // console.log('chatterbox: Message sent');
+        // var count = 0;
+        // for(var i = 0; i < data.results.length; ++i){
+        //   if(data.results[i]["roomname"] === app.currRoom){
+        //     count++;
+        //     break;
+        //   }
+        // }
+        // if(count > 0){
+        //   latestRoomMessages = data.results;
+        // }
+        displayMessages(data.results);
+      },
+      error: function(data) {
+        console.error('chatterbox: Failed to send message');
+      }
+    });
+    return latestRoomMessages;
+  }
 };
 
 //Initialize method
 app.init = function(){
-  setInterval(app.fetch, 1000);
+  if(app.username === undefined){
+    app.username = prompt("Gimme: ");
+  }
+  setInterval(app.fetch, 5000);
 };
 app.init();
 
@@ -117,6 +134,7 @@ app.clearMessages = function(){
 //Send message method
 app.send = function(message){
   //Use ajax to send message to server
+  
   $.ajax({
     url: app.server,
     type: 'POST', 
@@ -128,9 +146,11 @@ app.send = function(message){
     contentType: 'application/json',
     success: function(data){
       // console.log('chatterbox: Message sent');
-      this.addMessage(message);
+      
+      app.addMessage(message);
     },
     error: function(data) {
+      
       console.error('chatterbox: Failed to send message');
     }
   });
@@ -138,8 +158,30 @@ app.send = function(message){
 
 //Add a message to the DOM
 app.addMessage = function(message){
+  //Turn off fetching
+  // app.canFetch = false;
   //Prepend to DOM
   $("#chats").prepend(messageMaker(message));
+  //Get key and update
+  var lastMsg;
+  // $.ajax({
+  //   url: app.server,
+  //   type: 'GET', 
+  //   data: 'where={"username": "' + app.username + '"}',
+  //   contentType: 'application/json',
+  //   success: function(data){
+  //     console.log("called");
+  //     lastMsg = data.results[0];
+  //     console.log(lastMsg);
+  //   },
+  //   error: function(data) {
+  //     console.error('chatterbox: Failed to send message');
+  //   }
+  // });
+  // //Set message ID to avoid duplicates
+  // app.messageStorage[lastMsg['objectId']] = true;
+  // //Return to fetching
+  // app.canFetch = true;
 };
 
 //Send message method
