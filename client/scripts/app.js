@@ -23,9 +23,10 @@
 var app = {};
 app.server = 'https://api.parse.com/1/classes/chatterbox';//App url
 app.messageStorage = {};//Stores keys of all visible messages
+app.currRoom = "lobby";
 
 var displayMessages = function(messageArray){
-  console.log("trying to display messages");
+  // console.log("trying to display messages");
   // return;
   for(var i = messageArray.length-1; i>=0; i--){
     if(app.messageStorage.hasOwnProperty([messageArray[i]['objectId']])
@@ -57,20 +58,46 @@ var messageMaker = function(message){
 
 //Fetch messages from the server
 app.fetch = function(){
+  // $.ajax({
+  //   url: app.server,
+  //   type: 'GET', 
+  //   // data: JSON.stringify({}),
+  //   // contentType: 'application/json',
+  //   success: function(data){
+  //     // console.log('chatterbox: Message received');
+  //     // console.log(data);
+  //     displayMessages(data.results);
+  //   },
+  //   error: function(data) {
+  //     console.error('chatterbox: Failed to send message');
+  //   }
+  // });
+  var latestRoomMessages = [];
+  //Use ajax to send message to server
   $.ajax({
     url: app.server,
     type: 'GET', 
-    // data: JSON.stringify({}),
-    // contentType: 'application/json',
+    data: 'where={"roomname": "' + app.currRoom + '"}',
+    contentType: 'application/json',
     success: function(data){
-      console.log('chatterbox: Message received');
-      console.log(data);
+      // console.log('chatterbox: Message sent');
+      // var count = 0;
+      // for(var i = 0; i < data.results.length; ++i){
+      //   if(data.results[i]["roomname"] === app.currRoom){
+      //     count++;
+      //     break;
+      //   }
+      // }
+      // if(count > 0){
+      //   latestRoomMessages = data.results;
+      // }
       displayMessages(data.results);
     },
     error: function(data) {
       console.error('chatterbox: Failed to send message');
     }
   });
+  return latestRoomMessages;
 };
 
 //Initialize method
@@ -127,7 +154,7 @@ app.getRoomMessages = function(room){
     contentType: 'application/json',
     success: function(data){
       // console.log('chatterbox: Message sent');
-      console.log(data);
+      // console.log(data);
       var count = 0;
       for(var i = 0; i < data.results.length; ++i){
         if(data.results[i]["roomname"] === room){
@@ -146,11 +173,39 @@ app.getRoomMessages = function(room){
   return latestRoomMessages;
 };
 
-
+//A function to add a room
 app.addRoom = function(room){
-  var roomMessages = app.getRoomMessages(room);
-  if (roomMessage.length === 0) {
-    //create room
-    // prepend
+  //If dom element doesnt exist
+  if($("body > #roomSelect")){
+    //Create it
+    var roomFilter;
+    if($("body > #roomSelect").children().length === 0){
+      roomFilter = $('<div class="filter-btn""></div>');
+      roomFilter.css({
+        height: 50,
+        width: 50,
+        "border-radius": "10%",
+        "background-color": "red"
+      });
+    }
+    if(!roomFilter){
+      roomFilter = $("body > #roomSelect > .filter-btn");
+    }
+    roomFilter.text(room);
+    //Click function
+    var clickFunction = function(){
+      app.currRoom = room;
+      app.clearMessages();
+    };
+    roomFilter.click(function(){clickFunction();});
+
+    //Click function
+    roomFilter.trigger("click");
+    $("#roomSelect").append(roomFilter);
   }
+};
+
+//A button too add room
+document.getElementById("makeRoomButton").onclick = function(){
+  app.addRoom($("#makeRoomField").val());
 };
