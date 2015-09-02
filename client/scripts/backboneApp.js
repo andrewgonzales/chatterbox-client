@@ -8,6 +8,8 @@ var AppModel = Backbone.Model.extend({
     if(roomname){
       this.set('roomname', roomname);
     }
+    //Unique keys object for existing messages
+    this.set('messageIds', {});
   }, 
   //Default attributes
   defaults: {
@@ -16,6 +18,7 @@ var AppModel = Backbone.Model.extend({
     roomname: 'lobby',
     friends: []
   }
+
 
 });
 
@@ -47,6 +50,8 @@ var AppView = Backbone.View.extend({
 });
 //Backbone Message View
 var MessageView = Backbone.View.extend({
+  initialize:
+    this.render();
   render: function(friends){
     //Create divs conventional
     var escaper = $('<div></div>');
@@ -63,7 +68,7 @@ var MessageView = Backbone.View.extend({
       textClass += ' friend';
     }
     textClass += '">';
-    
+
     //Convert array to string
     var html = [
       '<div class="chat">',
@@ -80,4 +85,30 @@ var MessageView = Backbone.View.extend({
     return this.$el.html(html);
   }
 
+});
+
+//MessageModel Collection extension
+var MessageCollection = Backbone.Collection.extend({
+  model: MessageModel
+});
+
+var MessageCollectionView = Backbone.View.extend({
+  initialize: function(){
+    //Set inner html
+    this.$el[0]["id"] = "chats";
+  },
+
+  //Render all new models
+  render: function(modelViewArr){
+    //Loop through model array
+    for(var i = modelViewArr.length - 1; i >= 0; --i){
+      //Append to view
+      this.$el.prepend(modelViewArr[i].$el);
+    }
+  },
+
+  //Clear all messages
+  clear: function(){
+    this.$el.html("");
+  }
 });
