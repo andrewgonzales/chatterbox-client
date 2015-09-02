@@ -1,0 +1,34 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>chatterbox</title>
+    <link rel="stylesheet" href="styles/styles.css">
+
+    <!-- dependencies -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/backbone/backbone.js"></script>
+    <!-- your scripts -->
+    <script src="env/config.js"></script>
+  </head>
+  <body>
+    <div id = "roomSelect"></div>
+    <form id="roomForm">
+      <input type="text" id="makeRoomField" />
+    </form>
+    <div id="makeRoomButton" />
+      Click Me
+    </div>
+    <div id="main">
+      <h1>chatterbox</h1>
+      <form action="#" id="send" method="post">
+        <input type="text" name="message" id="message"/>
+        <input type="submit" name="submit" class="submit" />
+      </form>
+      <!-- Your HTML goes here! (yours too)-->
+    </div>
+    <div id="chats"></div>
+    <script src="scripts/backboneApp.js"></script>
+  </body>
+</html>

@@ -50,6 +50,9 @@ var messageMaker = function(message){
   var containerDiv = $('<div class="chat"></div>');
   var userDiv = $('<div class="username"></div>');
   var textDiv = $('<div class="text"></div>');
+  if(app.friends[user]){
+    textDiv.css('font-weight', 'bold');
+  }
   //Set text
   userDiv.text(user);
   textDiv.text(text);
@@ -65,6 +68,7 @@ var messageMaker = function(message){
 
 app.addFriend = function(DOMElement){
   this.friends[$(DOMElement).text()] = $(DOMElement).text();
+  app.clearMessages();
 };
 
 app.handleSubmit = function(){
